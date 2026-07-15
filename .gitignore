@@ -1,6 +1,6 @@
 outputs/checkpoints/
 outputs/explanations/
-outputs/reports/
+
 data/
 __pycache__/
 *.pyc
