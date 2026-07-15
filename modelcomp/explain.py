@@ -63,9 +63,11 @@ class GradCAM:
 def preprocess_image(image: np.ndarray, image_size: int):
     image = cv2.resize(image, (image_size, image_size), interpolation=cv2.INTER_LINEAR)
     image = image.astype(np.float32) / 255.0
-    image = (image - np.array([0.485, 0.456, 0.406])) / np.array([0.229, 0.224, 0.225])
+    mean = np.array([0.485, 0.456, 0.406], dtype=np.float32)
+    std = np.array([0.229, 0.224, 0.225], dtype=np.float32)
+    image = (image - mean) / std
     image = image[:, :, ::-1].copy() if image.shape[2] == 3 else np.stack([image] * 3, axis=-1)
-    tensor = torch.from_numpy(image.transpose(2, 0, 1)).unsqueeze(0)
+    tensor = torch.from_numpy(image.transpose(2, 0, 1)).unsqueeze(0).float()
     return tensor
 
 
