@@ -88,6 +88,7 @@ def run_experiment(config):
     try:
         explain_results = explain_samples(model, config, class_names, num_samples=12)
         pd.DataFrame(explain_results).to_csv(Path(config.explain_dir) / f"explain_{config.model_name}.csv", index=False)
+        print(f"Explanation images saved to {config.explain_dir}/{config.model_name}")
     except Exception as exc:
         print(f"Explainability step skipped due to error: {exc}")
 

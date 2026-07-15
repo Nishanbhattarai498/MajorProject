@@ -6,6 +6,11 @@ from modelcomp.data import opencv_loader
 from modelcomp.models import get_explain_target_layer
 from modelcomp.utils import ensure_dir
 
+try:
+    from lime import lime_image
+except Exception:  # pragma: no cover - optional dependency
+    lime_image = None
+
 
 class GradCAM:
     def __init__(self, model: torch.nn.Module, target_layer: torch.nn.Module):
@@ -72,6 +77,47 @@ def overlay_heatmap(original: np.ndarray, cam: np.ndarray, alpha: float = 0.5):
     return overlay
 
 
+def generate_lime_explanation(model, image, config, class_names, target_class=None, output_path=None):
+    if lime_image is None:
+        return None
+
+    model.eval()
+    image = image.astype(np.uint8)
+    explainer = lime_image.LimeImageExplainer(random_state=42)
+    explanation = explainer.explain_instance(
+        image,
+        lambda x: _predict_with_model(model, x, config, class_names),
+        labels=[target_class] if target_class is not None else None,
+        num_samples=30,
+        hide_color=0,
+    )
+    temp, mask = explanation.get_image_and_mask(
+        explanation.top_labels[0],
+        positive_only=False,
+        num_features=10,
+        hide_rest=False,
+    )
+
+    if output_path is not None:
+        ensure_dir(output_path.parent)
+        cv2.imwrite(str(output_path), cv2.cvtColor(np.uint8(255 * temp), cv2.COLOR_RGB2BGR))
+    return temp, mask
+
+
+def _predict_with_model(model, batch, config, class_names):
+    model.eval()
+    preds = []
+    with torch.no_grad():
+        for image in batch:
+            tensor = torch.from_numpy(np.transpose(image, (2, 0, 1))).float().unsqueeze(0).to(config.device)
+            tensor = tensor / 255.0
+            tensor = (tensor - torch.tensor([0.485, 0.456, 0.406]).view(1, 3, 1, 1).to(config.device)) / torch.tensor([0.229, 0.224, 0.225]).view(1, 3, 1, 1).to(config.device)
+            logits = model(tensor)
+            probs = torch.softmax(logits, dim=1).cpu().numpy()
+            preds.append(probs)
+    return np.concatenate(preds, axis=0)
+
+
 def explain_samples(model, config, class_names, num_samples: int = 8):
     model.eval()
     model = model.to(config.device)
@@ -100,9 +146,22 @@ def explain_samples(model, config, class_names, num_samples: int = 8):
         cam_resized = cv2.resize(cam, (original.shape[1], original.shape[0]))
         overlay = overlay_heatmap(original, cam_resized)
 
-        filename = f"{image_path.stem}_true_{class_names[true_label]}_pred_{class_names[pred_label]}.png"
-        cv2.imwrite(str(output_dir / filename), cv2.cvtColor(overlay, cv2.COLOR_RGB2BGR))
-        results.append({"path": str(image_path), "true": class_names[true_label], "pred": class_names[pred_label]})
+        gradcam_filename = f"{image_path.stem}_true_{class_names[true_label]}_pred_{class_names[pred_label]}_gradcam.png"
+        cv2.imwrite(str(output_dir / gradcam_filename), cv2.cvtColor(overlay, cv2.COLOR_RGB2BGR))
+
+        lime_path = output_dir / f"{image_path.stem}_true_{class_names[true_label]}_pred_{class_names[pred_label]}_lime.png"
+        try:
+            generate_lime_explanation(model, original, config, class_names, target_class=pred_label, output_path=lime_path)
+        except Exception:
+            pass
+
+        results.append({
+            "path": str(image_path),
+            "true": class_names[true_label],
+            "pred": class_names[pred_label],
+            "gradcam": str(output_dir / gradcam_filename),
+            "lime": str(lime_path) if lime_path.exists() else None,
+        })
 
     cam_generator.remove_hooks()
     return results
