@@ -1,5 +1,6 @@
 outputs/checkpoints/
 outputs/explanations/
+outputs/
 
 data/
 __pycache__/
@@ -23,3 +24,7 @@ __pycache__/
 *.gz
 *.rar
 *.7z
+
+# Local Python environments and test caches
+.venv/
+.pytest_cache/
