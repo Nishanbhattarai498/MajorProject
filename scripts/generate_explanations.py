@@ -14,8 +14,8 @@ import torch
 
 from modelcomp.config import ExperimentConfig
 from modelcomp.data import opencv_loader
-from modelcomp.explain import GradCAM, generate_lime_explanation, overlay_heatmap, preprocess_image
-from modelcomp.models import create_model, get_explain_target_layer
+from modelcomp.explain import GradCAM, generate_lime_explanation, overlay_heatmap, predict_image, preprocess_image
+from modelcomp.models import create_model, get_explain_target_layer, get_explain_target_layout
 from modelcomp.utils import load_checkpoint
 
 
@@ -28,7 +28,7 @@ def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--model", action="append", dest="models", help="Model name; repeat to explain multiple models.")
     parser.add_argument("--checkpoint-dir", type=Path, default=Path("outputs/checkpoints"))
     parser.add_argument("--output-dir", type=Path, default=Path("outputs/explanations/manual"))
-    parser.add_argument("--lime-samples", type=int, default=300)
+    parser.add_argument("--lime-samples", type=int, default=800)
     parser.add_argument("--skip-lime", action="store_true")
     return parser.parse_args(argv)
 
@@ -62,19 +62,28 @@ def explain_image(args: argparse.Namespace) -> None:
         model.to(device).eval()
 
         inputs = preprocess_image(original, config.img_size).to(device)
-        with torch.inference_mode():
-            predicted_class = int(model(inputs).argmax(dim=1).item())
+        prediction = predict_image(model, inputs)
         output_dir = args.output_dir / model_name
         output_dir.mkdir(parents=True, exist_ok=True)
-        with GradCAM(model, get_explain_target_layer(model_name, model)) as generator:
-            overlay = overlay_heatmap(original, generator(inputs, predicted_class))
+        with GradCAM(model, get_explain_target_layer(model_name, model), get_explain_target_layout(model_name)) as generator:
+            overlay = overlay_heatmap(original, generator(inputs, prediction.class_idx))
         gradcam_path = output_dir / f"{args.image.stem}_gradcam.png"
         cv2.imwrite(str(gradcam_path), cv2.cvtColor(overlay, cv2.COLOR_RGB2BGR))
 
         lime_path = output_dir / f"{args.image.stem}_lime.png"
         if not args.skip_lime:
-            generate_lime_explanation(model, original, config, class_names, predicted_class, lime_path, args.lime_samples)
-        print(f"{model_name}: {class_names[predicted_class]} | Grad-CAM: {gradcam_path} | LIME: {lime_path if lime_path.exists() else 'skipped'}")
+            try:
+                generate_lime_explanation(
+                    model,
+                    original,
+                    config,
+                    target_class=prediction.class_idx,
+                    output_path=lime_path,
+                    num_samples=args.lime_samples,
+                )
+            except (ImportError, RuntimeError, ValueError) as exc:
+                print(f"{model_name}: LIME skipped: {exc}")
+        print(f"{model_name}: {class_names[prediction.class_idx]} ({prediction.confidence:.1%}) | Grad-CAM: {gradcam_path} | LIME: {lime_path if lime_path.exists() else 'skipped'}")
 
 
 def main(argv: Sequence[str] | None = None) -> None:

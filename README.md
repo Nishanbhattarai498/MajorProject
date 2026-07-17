@@ -27,6 +27,6 @@ To run only Swin Transformer Tiny:
 .\.venv\Scripts\python.exe -m scripts.generate_explanations --model swin_tiny_patch4_window7_224 --image data\test\meningioma\example.jpg
 ```
 
-Images are written to `outputs/explanations/manual/<model>/` as `<image>_gradcam.png` and `<image>_lime.png`.
+Images are written to `outputs/explanations/manual/<model>/` as `<image>_gradcam.png` and `<image>_lime.png`. Both maps explain the model's predicted class (shown with confidence in the command output). Grad-CAM uses each model's final spatial feature layout, while LIME highlights only superpixels with positive evidence for that same prediction.
 
-Use `--skip-lime` when you only need Grad-CAM, or reduce `--lime-samples` for a quicker, lower-detail LIME result.
+Use `--skip-lime` when you only need Grad-CAM. LIME defaults to 800 perturbations for a more stable map; `--lime-samples 300` is faster but less reliable.

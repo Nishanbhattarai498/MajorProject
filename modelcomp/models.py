@@ -36,3 +36,15 @@ def get_explain_target_layer(model_name: str, model):
     if target_name not in named_modules:
         raise ValueError(f"Target layer {target_name!r} was not found in {model_name}.")
     return named_modules[target_name]
+
+
+def get_explain_target_layout(model_name: str) -> str:
+    """Return the exact target-layer tensor layout used by each supported model."""
+    layouts = {
+        "efficientnetv2_s": "bchw",
+        "convnext_tiny": "bchw",
+        "swin_tiny_patch4_window7_224": "bhwc",
+    }
+    if model_name not in layouts:
+        raise ValueError(f"No Grad-CAM feature layout configured for {model_name}")
+    return layouts[model_name]
