@@ -11,3 +11,7 @@ seaborn
 kagglehub
 kaggle
 lime
+fastapi
+uvicorn[standard]
+python-multipart
+pillow
