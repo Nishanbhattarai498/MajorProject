@@ -1,0 +1,24 @@
+{
+  "expo": {
+    "name": "NeuroScope",
+    "slug": "neuroscope-brain-mri",
+    "scheme": "neuroscope",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "dark",
+    "newArchEnabled": true,
+    "plugins": [
+      "expo-router",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Allow NeuroScope to select an MRI image for analysis.",
+          "cameraPermission": false
+        }
+      ]
+    ],
+    "experiments": { "typedRoutes": true },
+    "ios": { "supportsTablet": true },
+    "android": { "edgeToEdgeEnabled": true }
+  }
+}

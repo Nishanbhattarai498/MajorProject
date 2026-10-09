@@ -1,1 +1,0 @@
-"""HTTP inference service for the trained brain MRI classifiers."""
