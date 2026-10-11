@@ -6,7 +6,7 @@
     "version": "1.0.0",
     "orientation": "portrait",
     "userInterfaceStyle": "dark",
-    "newArchEnabled": true,
+    "sdkVersion": "57.0.0",
     "plugins": [
       "expo-router",
       [
@@ -15,10 +15,17 @@
           "photosPermission": "Allow NeuroScope to select an MRI image for analysis.",
           "cameraPermission": false
         }
-      ]
+      ],
+      "expo-font",
+      "expo-secure-store",
+      "expo-status-bar"
     ],
-    "experiments": { "typedRoutes": true },
-    "ios": { "supportsTablet": true },
-    "android": { "edgeToEdgeEnabled": true }
+    "experiments": {
+      "typedRoutes": true
+    },
+    "ios": {
+      "supportsTablet": true
+    },
+    "android": {}
   }
 }

@@ -28,5 +28,6 @@ __pycache__/
 # Local Python environments and test caches
 .venv/
 .pytest_cache/
+.expo/
 node_modules/
 npm-debug.log*
