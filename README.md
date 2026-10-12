@@ -434,14 +434,12 @@ The project explores how machine learning predictions and visual explanations ca
 
 ## 📄 License
 
-No license has been specified here. If you intend to publish the repository for reuse, add an appropriate `LICENSE` file and update this section. Without an explicit license, others generally do not receive permission to reuse, modify, or redistribute your copyrighted code beyond applicable legal exceptions.
+
 
 ## 👨‍💻 Author
 
 **Developed as an academic major project.**
-
-Add your name, GitHub profile, institution, and project contact information here if you want to make the repository publicly presentable.
-
+**By Nishan Bhattarai and team**
 ---
 
 *NeuroScope — Exploring brain MRI classification through deep learning and explainable AI.*
