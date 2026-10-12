@@ -15,7 +15,14 @@ export type Prediction = {
 
 const apiUrl = process.env.EXPO_PUBLIC_API_URL?.replace(/\/$/, '');
 
+async function isDemoSession() {
+  return (await SecureStore.getItemAsync('neuroscope-demo-session')) === 'true';
+}
+
 async function request<T>(path: string, init?: RequestInit, authenticated = true): Promise<T> {
+  if (await isDemoSession()) {
+    throw new Error('This feature needs the live NeuroScope backend. Demo sign-in only previews the app UI.');
+  }
   if (!apiUrl) throw new Error('Set EXPO_PUBLIC_API_URL in mobile/.env and restart Expo.');
   const token = authenticated ? await SecureStore.getItemAsync('neuroscope-token') : null;
   let response: Response;
@@ -32,7 +39,8 @@ async function request<T>(path: string, init?: RequestInit, authenticated = true
   return payload as T;
 }
 
-export function getRecentPredictions(limit = 20) {
+export async function getRecentPredictions(limit = 20) {
+  if (await isDemoSession()) return { predictions: [] as Prediction[] };
   return request<{ predictions: Prediction[] }>(`/api/v1/predictions?limit=${limit}`);
 }
 

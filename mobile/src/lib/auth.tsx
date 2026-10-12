@@ -3,6 +3,9 @@ import * as SecureStore from 'expo-secure-store';
 import { registerAccount, signIn } from '@/lib/api';
 
 type Account = { id: string; email: string };
+export const DEMO_EMAIL = 'demo@neuroscope.local';
+export const DEMO_PASSWORD = 'NeuroScopeDemo123!';
+
 type AuthContextValue = {
   account: Account | null;
   ready: boolean;
@@ -23,7 +26,17 @@ export function AuthProvider({ children }: PropsWithChildren) {
   }, []);
 
   async function authenticate(email: string, password: string, createAccount = false) {
+    if (!createAccount && email.trim().toLowerCase() === DEMO_EMAIL && password === DEMO_PASSWORD) {
+      const demoAccount = { id: 'neuroscope-demo', email: DEMO_EMAIL };
+      await SecureStore.deleteItemAsync('neuroscope-token');
+      await SecureStore.setItemAsync('neuroscope-account', JSON.stringify(demoAccount));
+      await SecureStore.setItemAsync('neuroscope-demo-session', 'true');
+      setAccount(demoAccount);
+      return;
+    }
+
     const session = createAccount ? await registerAccount(email, password) : await signIn(email, password);
+    await SecureStore.deleteItemAsync('neuroscope-demo-session');
     await SecureStore.setItemAsync('neuroscope-token', session.token);
     await SecureStore.setItemAsync('neuroscope-account', JSON.stringify(session.user));
     setAccount(session.user);
@@ -32,6 +45,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
   async function signOut() {
     await SecureStore.deleteItemAsync('neuroscope-token');
     await SecureStore.deleteItemAsync('neuroscope-account');
+    await SecureStore.deleteItemAsync('neuroscope-demo-session');
     setAccount(null);
   }
 

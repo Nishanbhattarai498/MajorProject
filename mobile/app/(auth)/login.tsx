@@ -3,7 +3,7 @@ import { ActivityIndicator, KeyboardAvoidingView, Platform, Pressable, StyleShee
 import { router, Link } from 'expo-router';
 import { Brain, CircleAlert, MoveRight } from 'lucide-react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useAuth } from '@/lib/auth';
+import { DEMO_EMAIL, DEMO_PASSWORD, useAuth } from '@/lib/auth';
 import { colors, font } from '@/lib/theme';
 
 export default function LoginScreen() {
@@ -23,7 +23,7 @@ export default function LoginScreen() {
   return (
     <SafeAreaView style={styles.safe}><KeyboardAvoidingView style={styles.content} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <View style={styles.brand}><View style={styles.mark}><Brain size={21} color={colors.background} /></View><Text style={styles.brandName}>NEUROSCOPE</Text></View>
-      <View style={styles.intro}><Text style={styles.kicker}>PRIVATE IMAGING WORKSPACE</Text><Text style={styles.title}>Welcome{ '\n' }back.</Text><Text style={styles.subtitle}>Sign in to access your saved analyses.</Text></View>
+      <View style={styles.intro}><Text style={styles.kicker}>PRIVATE IMAGING WORKSPACE</Text><Text style={styles.title}>Welcome{ '\n' }back.</Text><Text style={styles.subtitle}>Sign in to access your saved analyses.</Text><Text style={styles.demoHint}>Offline UI demo{'\n'}Email: {DEMO_EMAIL}{'\n'}Password: {DEMO_PASSWORD}</Text></View>
       <View style={styles.form}><Text style={styles.label}>EMAIL</Text><TextInput value={email} onChangeText={setEmail} autoCapitalize="none" autoComplete="email" keyboardType="email-address" placeholder="you@example.com" placeholderTextColor={colors.subtle} style={styles.input} /><Text style={styles.label}>PASSWORD</Text><TextInput value={password} onChangeText={setPassword} autoComplete="current-password" secureTextEntry placeholder="Your password" placeholderTextColor={colors.subtle} style={styles.input} />
         {error ? <View style={styles.error}><CircleAlert size={16} color={colors.coral} /><Text style={styles.errorText}>{error}</Text></View> : null}
         <Pressable onPress={submit} disabled={busy || !email || !password} style={[styles.submit, (busy || !email || !password) && styles.disabled]}>{busy ? <ActivityIndicator color={colors.background} /> : <><Text style={styles.submitText}>Sign in</Text><MoveRight size={18} color={colors.background} /></>}</Pressable>
@@ -44,6 +44,7 @@ const styles = StyleSheet.create({
   kicker: { color: colors.mint, fontFamily: font.semibold, fontSize: 10, letterSpacing: 1.2 },
   title: { color: colors.text, fontFamily: font.display, fontSize: 43, lineHeight: 48 },
   subtitle: { color: colors.muted, fontFamily: font.body, fontSize: 14 },
+  demoHint: { color: colors.mint, fontFamily: font.medium, fontSize: 11, lineHeight: 17, marginTop: 5 },
   form: { gap: 10 },
   label: { color: colors.muted, fontFamily: font.semibold, fontSize: 9, letterSpacing: 1.1, marginTop: 7 },
   input: { height: 52, borderRadius: 14, paddingHorizontal: 14, color: colors.text, fontFamily: font.body, fontSize: 14, backgroundColor: colors.surface, borderColor: colors.border, borderWidth: 1 },
