@@ -32,12 +32,42 @@ export default function ResultScreen() {
       <Pressable onPress={() => router.back()} style={styles.back}><ArrowLeft size={18} color={colors.text} /><Text style={styles.backText}>Analysis result</Text><Text style={styles.date}>{new Date(result.createdAt).toLocaleDateString()}</Text></Pressable>
       <View style={styles.resultHeader}><View style={styles.success}><Check size={14} color={colors.background} /></View><Text style={styles.kicker}>MODEL PREDICTION</Text><Text style={styles.className}>{formatClassName(result.predictedClass)}</Text><Text style={styles.confidence}>{formatPercent(result.confidence)}<Text style={styles.confidenceLabel}> confidence</Text></Text></View>
 
-      <View style={styles.imageBlock}><View style={styles.imageHeading}><Text style={styles.imageTitle}>Grad-CAM overlay</Text><Text style={styles.imageTag}>PREDICTED CLASS</Text></View><Image source={{ uri: result.gradcamImage }} style={styles.resultImage} resizeMode="contain" /><View style={styles.legend}><View style={styles.legendWarm} /><Text style={styles.legendText}>Higher influence</Text><View style={styles.legendCool} /><Text style={styles.legendText}>Lower influence</Text></View></View>
+      <View style={styles.imageBlock}>
+        <View style={styles.imageHeading}><Text style={styles.imageTitle}>Grad-CAM heatmap</Text><Text style={styles.imageTag}>FOR THIS PREDICTION</Text></View>
+        <Image source={{ uri: result.gradcamImage }} style={styles.resultImage} resizeMode="contain" />
+        <View style={styles.heatmapKey}>
+          <Text style={styles.keyLabel}>LESS</Text>
+          <View style={styles.colorScale}>
+            {['#2846B8', '#19A7DB', '#32C96A', '#F3E544', '#F49A38', '#D9362B'].map((color, index) => (
+              <View key={index} style={[styles.colorStop, { backgroundColor: color }]} />
+            ))}
+          </View>
+          <Text style={styles.keyLabel}>MORE</Text>
+        </View>
+        <Text style={styles.keyCaption}>Relative influence in this map · not probability or tumor severity</Text>
+      </View>
       <View style={styles.imageBlock}><View style={styles.imageHeading}><Text style={styles.imageTitle}>Source image</Text><Text style={styles.imageTag}>UPLOADED MRI</Text></View><Image source={{ uri: result.originalImage }} style={styles.resultImage} resizeMode="contain" /></View>
+
+      <View style={styles.readingGuide}>
+        <Text style={styles.guideKicker}>HOW TO READ THIS VIEW</Text>
+        <Text style={styles.guideTitle}>Use the heatmap as a model explanation</Text>
+        <View style={styles.guideStep}>
+          <Text style={styles.stepNumber}>01</Text>
+          <View style={styles.stepCopy}><Text style={styles.stepTitle}>Compare both images</Text><Text style={styles.stepText}>Look between the overlay and the source MRI to see where the color pattern falls on the image.</Text></View>
+        </View>
+        <View style={styles.guideStep}>
+          <Text style={styles.stepNumber}>02</Text>
+          <View style={styles.stepCopy}><Text style={styles.stepTitle}>Read colors relatively</Text><Text style={styles.stepText}>Warmer colors indicate areas with more influence on this model output; cooler colors indicate less. They do not show certainty or severity.</Text></View>
+        </View>
+        <View style={styles.guideStep}>
+          <Text style={styles.stepNumber}>03</Text>
+          <View style={styles.stepCopy}><Text style={styles.stepTitle}>Review the class scores</Text><Text style={styles.stepText}>Use the probability bars to see how the model scored all four dataset labels. Scores are not clinical probabilities.</Text></View>
+        </View>
+      </View>
 
       <View style={styles.probabilityBlock}><View style={styles.imageHeading}><Text style={styles.imageTitle}>Class probabilities</Text><Text style={styles.imageTag}>{formatClassName(result.model)}</Text></View>{probabilities.map((item) => <View key={item.className} style={styles.probabilityRow}><View style={styles.probabilityLabel}><Text style={[styles.probabilityName, item.className === result.predictedClass && styles.predictedName]}>{formatClassName(item.className)}</Text><Text style={styles.probabilityValue}>{formatPercent(item.confidence)}</Text></View><View style={styles.track}><View style={[styles.bar, { width: `${Math.max(item.confidence * 100, 1)}%` }, item.className === result.predictedClass && styles.activeBar]} /></View></View>)}</View>
 
-      <View style={styles.caveat}><Info size={16} color={colors.amber} /><Text style={styles.caveatText}>Grad-CAM highlights model influence, not a tumor boundary. This output is not a diagnosis.</Text></View>
+      <View style={styles.caveat}><Info size={16} color={colors.amber} /><Text style={styles.caveatText}>Grad-CAM is not a tumor outline or a guarantee that the model focused on medically relevant tissue. It is an educational visualization, not a diagnosis.</Text></View>
       <Pressable onPress={removeResult} disabled={deleting} style={styles.delete}><Trash2 size={16} color={colors.coral} /><Text style={styles.deleteText}>{deleting ? 'Deleting…' : 'Delete saved analysis'}</Text></Pressable>
     </AppScreen>
   );
@@ -59,10 +89,19 @@ const styles = StyleSheet.create({
   imageTitle: { color: colors.text, fontFamily: font.semibold, fontSize: 12 },
   imageTag: { color: colors.subtle, fontFamily: font.semibold, fontSize: 8, letterSpacing: 0.7, maxWidth: '55%' },
   resultImage: { width: '100%', height: 240, backgroundColor: '#050809' },
-  legend: { flexDirection: 'row', alignItems: 'center', gap: 6, padding: 11 },
-  legendWarm: { width: 8, height: 8, borderRadius: 4, backgroundColor: '#F28856' },
-  legendCool: { width: 8, height: 8, borderRadius: 4, backgroundColor: '#5978C6', marginLeft: 8 },
-  legendText: { color: colors.muted, fontFamily: font.body, fontSize: 10 },
+  heatmapKey: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 12, paddingTop: 12 },
+  colorScale: { flex: 1, height: 10, flexDirection: 'row', borderRadius: 5, overflow: 'hidden' },
+  colorStop: { flex: 1 },
+  keyLabel: { color: colors.muted, fontFamily: font.semibold, fontSize: 8, letterSpacing: 0.8 },
+  keyCaption: { color: colors.subtle, fontFamily: font.body, fontSize: 10, paddingHorizontal: 12, paddingTop: 6, paddingBottom: 12 },
+  readingGuide: { backgroundColor: colors.surface, borderColor: colors.border, borderWidth: 1, borderRadius: 17, padding: 15, gap: 14 },
+  guideKicker: { color: colors.mint, fontFamily: font.semibold, fontSize: 9, letterSpacing: 1.2 },
+  guideTitle: { color: colors.text, fontFamily: font.display, fontSize: 18, marginTop: -8 },
+  guideStep: { flexDirection: 'row', alignItems: 'flex-start', gap: 11 },
+  stepNumber: { color: colors.lime, fontFamily: font.display, fontSize: 12, paddingTop: 1 },
+  stepCopy: { flex: 1, gap: 4 },
+  stepTitle: { color: colors.text, fontFamily: font.semibold, fontSize: 12 },
+  stepText: { color: colors.muted, fontFamily: font.body, fontSize: 11, lineHeight: 17 },
   probabilityBlock: { gap: 13 },
   probabilityRow: { gap: 7 },
   probabilityLabel: { flexDirection: 'row', justifyContent: 'space-between' },

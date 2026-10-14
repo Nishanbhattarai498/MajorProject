@@ -18,7 +18,8 @@
       ],
       "expo-font",
       "expo-secure-store",
-      "expo-status-bar"
+      "expo-status-bar",
+      "expo-asset"
     ],
     "experiments": {
       "typedRoutes": true

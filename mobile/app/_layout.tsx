@@ -19,6 +19,9 @@ export default function RootLayout() {
           <Stack.Screen name="index" />
           <Stack.Screen name="(auth)" />
           <Stack.Screen name="(tabs)" />
+          <Stack.Screen name="classes/index" />
+          <Stack.Screen name="classes/[slug]" options={{ presentation: 'card' }} />
+          <Stack.Screen name="heatmap" />
           <Stack.Screen name="result/[id]" options={{ presentation: 'card' }} />
         </Stack>
       </AuthProvider>
