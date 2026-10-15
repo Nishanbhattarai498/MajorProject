@@ -9,6 +9,7 @@ import { classifyImage } from '@/lib/api';
 import { colors, font } from '@/lib/theme';
 
 type SelectedImage = { uri: string; mimeType?: string | null; fileName?: string | null };
+const MAX_IMAGE_SIZE_BYTES = 8 * 1024 * 1024;
 
 export default function ClassifyScreen() {
   const [selected, setSelected] = useState<SelectedImage | null>(null);
@@ -17,10 +18,19 @@ export default function ClassifyScreen() {
 
   async function chooseImage() {
     setError('');
-    const result = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images'], allowsEditing: false, quality: 1 });
-    if (!result.canceled) {
-      const asset = result.assets[0];
-      setSelected({ uri: asset.uri, mimeType: asset.mimeType, fileName: asset.fileName });
+    try {
+      const result = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images'], allowsEditing: false, quality: 1 });
+      if (!result.canceled) {
+        const asset = result.assets[0];
+        if (asset.fileSize && asset.fileSize > MAX_IMAGE_SIZE_BYTES) {
+          setSelected(null);
+          setError('This image is larger than 8 MB. Choose a smaller MRI image to continue.');
+          return;
+        }
+        setSelected({ uri: asset.uri, mimeType: asset.mimeType, fileName: asset.fileName });
+      }
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : 'Could not open your image library. Please try again.');
     }
   }
 

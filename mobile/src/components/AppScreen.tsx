@@ -17,7 +17,7 @@ export function AppScreen({ children, scroll = true, bottomInset = true }: Props
           {children}
         </ScrollView>
       ) : (
-        <View style={[styles.content, bottomInset && styles.bottomInset]}>{children}</View>
+        <View style={[styles.content, styles.fillContent, bottomInset && styles.bottomInset]}>{children}</View>
       )}
     </SafeAreaView>
   );
@@ -26,5 +26,6 @@ export function AppScreen({ children, scroll = true, bottomInset = true }: Props
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.background },
   content: { paddingHorizontal: 22, paddingTop: 12, gap: 22 },
+  fillContent: { flex: 1 },
   bottomInset: { paddingBottom: 36 },
 });
